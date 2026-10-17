@@ -4,11 +4,22 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from backend.ingestion.models import RawPost
 from backend.ingestion.sources.base import BaseSource
+from urllib.parse import urlparse, parse_qs
 
+
+def extract_video_id(value: str) -> str:
+    """Accept a bare ID, a full URL, or an ID with trailing '&...' junk."""
+    value = value.strip()
+    if value.startswith("http"):
+        u = urlparse(value)
+        if u.hostname == "youtu.be":
+            return u.path.lstrip("/")
+        return parse_qs(u.query)["v"][0]
+    return value.split("&")[0]
 
 class YouTubeSource(BaseSource):
     def __init__(self, video_ids, max_pages=3):
-        self.video_ids = video_ids
+        self.video_ids = [extract_video_id(v) for v in video_ids]
         self.max_pages = max_pages
         self.client = build("youtube", "v3", developerKey=os.environ["YOUTUBE_API_KEY"])
 
@@ -44,3 +55,5 @@ class YouTubeSource(BaseSource):
             if not token:
                 break
         return posts
+
+    

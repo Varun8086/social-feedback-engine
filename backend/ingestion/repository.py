@@ -21,3 +21,18 @@ def insert_posts(conn, source_id, posts) -> int:
         )
         inserted += cur.rowcount  # 1 if inserted, 0 if skipped
     return inserted
+
+def start_run(conn, source_id) -> int:
+    return conn.execute(
+        "INSERT INTO ingestion_runs (source_id) VALUES (%s) RETURNING id",
+        (source_id,),
+    ).fetchone()[0]
+
+def finish_run(conn, run_id, status, fetched, inserted, error=None):
+    conn.execute(
+        """UPDATE ingestion_runs
+           SET finished_at = now(), status = %s,
+               posts_fetched = %s, posts_inserted = %s, error = %s
+           WHERE id = %s""",
+        (status, fetched, inserted, error, run_id),
+    )
