@@ -6,8 +6,8 @@ load_dotenv()
 
 def get_conn():
     return psycopg.connect(
-        host="localhost",
-        port=5433,  # host port from docker-compose
+        host=os.getenv("DB_HOST", "localhost"),
+        port=int(os.getenv("DB_PORT", "5433")),
         dbname=os.environ["POSTGRES_DB"],
         user=os.environ["POSTGRES_USER"],
         password=os.environ["POSTGRES_PASSWORD"],
