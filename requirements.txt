@@ -7,3 +7,6 @@ pytest
 requests
 
 apscheduler
+
+transformers
+torch
