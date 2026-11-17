@@ -1,6 +1,10 @@
+import os
+
 from transformers import pipeline
 
 MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+BATCH_SIZE = int(os.getenv("SENTIMENT_BATCH_SIZE", "8"))
+MAX_LEN = int(os.getenv("SENTIMENT_MAX_LEN", "256"))
 _clf = None
 
 
@@ -14,5 +18,7 @@ def get_classifier():
 def score_texts(texts):
     """Return a list of (label, confidence) for each text."""
     safe = [t.strip() or "." for t in texts]  # model can't take empty strings
-    out = get_classifier()(safe, truncation=True, max_length=512, batch_size=32)
+    out = get_classifier()(
+        safe, truncation=True, max_length=MAX_LEN, batch_size=BATCH_SIZE
+    )
     return [(r["label"].lower(), r["score"]) for r in out]
